@@ -24,6 +24,19 @@ top::Qualifier ::=
   top.errors := [];
 }
 
+aspect production declarator
+top::Declarator ::= name::Name ty::TypeModifierExpr attrs::Attributes initializer::MaybeInitializer
+{
+  top.errors <-
+    case initializer of
+      justInitializer(_) -> []
+    | _ ->
+          if containsQualifier(taggedUnionQualifier(location=builtinLoc(MODULE_NAME)), top.typerep)
+          then [err(name.location, "tagged_union not initialized")]
+          else []
+    end;
+}
+
 aspect production inj:memberExpr
 top::Expr ::= lhs::Expr  deref::Boolean  rhs::Name
 {

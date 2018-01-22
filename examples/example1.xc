@@ -40,16 +40,13 @@ int eval(tagged_union struct Expr *e)
 
 int main(void)
 {
-	tagged_union struct Expr true_expr;
-	true_expr.tag = LITERAL;
+	tagged_union struct Expr true_expr = {LITERAL};
 	true_expr.variant.literal = true;
 
-	tagged_union struct Expr false_expr;
-	false_expr.tag = LITERAL;
+	tagged_union struct Expr false_expr = {LITERAL};
 	false_expr.variant.literal = false;
 
-	tagged_union struct Expr e;
-	e.tag = OR;
+	tagged_union struct Expr e = {OR};
 	e.variant.or.lhs = &true_expr;
 	e.variant.or.rhs = &false_expr;
 	/* this would be a runtime error */
