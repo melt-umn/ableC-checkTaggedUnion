@@ -45,7 +45,7 @@ node {
   try {
     // notifyBuild('STARTED')
 
-    def extension_name = "ableC-taggedUnion"
+    def extension_name = "ableC-checkTaggedUnion"
 
     /* the full path to ableC, use parameter as-is if changed from default,
      * otherwise prepend full path to workspace */

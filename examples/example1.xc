@@ -17,7 +17,7 @@ struct Expr {
 	} variant;
 };
 
-int eval(tagged_union struct Expr *e)
+int eval(check struct Expr *e)
 {
 	int val = 999;
 
@@ -40,13 +40,13 @@ int eval(tagged_union struct Expr *e)
 
 int main(void)
 {
-	tagged_union struct Expr true_expr = {LITERAL};
+	check struct Expr true_expr = {LITERAL};
 	true_expr.variant.literal = true;
 
-	tagged_union struct Expr false_expr = {LITERAL};
+	check struct Expr false_expr = {LITERAL};
 	false_expr.variant.literal = false;
 
-	tagged_union struct Expr e = {OR};
+	check struct Expr e = {OR};
 	e.variant.or.lhs = &true_expr;
 	e.variant.or.rhs = &false_expr;
 	/* this would be a runtime error */

@@ -1,5 +1,6 @@
-grammar edu:umn:cs:melt:exts:ableC:taggedUnion:abstractsyntax; 
+grammar edu:umn:cs:melt:exts:ableC:checkTaggedUnion:abstractsyntax; 
 
+imports edu:umn:cs:melt:exts:ableC:check:abstractsyntax; 
 imports silver:langutil;
 imports silver:langutil:pp;
 imports edu:umn:cs:melt:ableC:abstractsyntax:host;
@@ -7,22 +8,7 @@ imports edu:umn:cs:melt:ableC:abstractsyntax:env;
 imports edu:umn:cs:melt:ableC:abstractsyntax:construction;
 imports edu:umn:cs:melt:ableC:abstractsyntax:injectable as inj;
 
-global MODULE_NAME :: String = "edu:umn:cs:melt:exts:ableC:taggedUnion";
-
-abstract production taggedUnionQualifier
-top::Qualifier ::=
-{
-  top.pp = text("tagged_union");
-  top.mangledName = "tagged_union";
-  top.qualIsPositive = true;
-  top.qualIsNegative = true;
-  top.qualAppliesWithinRef = false;
-  top.qualCompat = \qualToCompare::Qualifier ->
-    case qualToCompare of taggedUnionQualifier() -> true | _ -> false end;
-  top.qualIsHost = false;
-  -- TODO: error if type is not a tagged union
-  top.errors := [];
-}
+global MODULE_NAME :: String = "edu:umn:cs:melt:exts:ableC:checkTaggedUnion";
 
 aspect production declarator
 top::Declarator ::= name::Name ty::TypeModifierExpr attrs::Attributes initializer::MaybeInitializer
@@ -31,7 +17,7 @@ top::Declarator ::= name::Name ty::TypeModifierExpr attrs::Attributes initialize
     case initializer of
       justInitializer(_) -> []
     | _ ->
-          if containsQualifier(taggedUnionQualifier(location=builtinLoc(MODULE_NAME)), top.typerep)
+          if containsQualifier(checkQualifier(location=builtinLoc(MODULE_NAME)), top.typerep)
           then [err(name.location, "tagged_union not initialized")]
           else []
     end;
@@ -55,7 +41,7 @@ top::Expr ::= lhs::Expr  deref::Boolean  rhs::Name
     case lhs of
       memberExpr(_, _, rhs1) ->
         rhs1.name == "variant" &&
-        containsQualifier(taggedUnionQualifier(location=builtinLoc(MODULE_NAME)), lhs1Ty)
+        containsQualifier(checkQualifier(location=builtinLoc(MODULE_NAME)), lhs1Ty)
     | _ -> false
     end;
 
@@ -68,13 +54,26 @@ top::Expr ::= lhs::Expr  deref::Boolean  rhs::Name
         end
     | _ -> error("expected refIdTagType")
     end;
+  structItems.env = top.env;
+  structItems.returnType = top.returnType;
 
-  local enumItems :: EnumItemList =
+  local eDecl :: EnumDecl =
     case structItems of
-      consStructItem(structItem(_, enumTypeExpr(_, enumDecl(_, dcls)), _), _) ->
-        dcls
+      consStructItem(structItem(_, enumTypeExpr(_, d), _), _) -> d
     | _ -> error("expected first struct item to be `tag` enum")
     end;
+  eDecl.env = top.env;
+  eDecl.returnType = top.returnType;
+  eDecl.givenRefId = nothing();
+
+  local enumItems :: EnumItemList =
+    case eDecl of
+      enumDecl(_, dcls) -> dcls
+    | _ -> error("expected first struct item to be `tag` enum")
+    end;
+  enumItems.env = top.env;
+  enumItems.returnType = top.returnType;
+  enumItems.containingEnum = tagType(nilQualifier(), enumTagType(eDecl));
 
   local unionItems :: StructItemList =
     case lhs.typerep of
@@ -85,6 +84,8 @@ top::Expr ::= lhs::Expr  deref::Boolean  rhs::Name
         end
     | _ -> error("expected refIdTagType")
     end;
+  unionItems.env = top.env;
+  unionItems.returnType = top.returnType;
 
   local variantIndex :: Integer = findStructItemPos(rhs.name, unionItems);
 
@@ -113,13 +114,13 @@ top::Expr ::= lhs::Expr  deref::Boolean  rhs::Name
 }
 
 function findStructItemPos
-Integer ::= n::String  items::StructItemList
+Integer ::= n::String  items::Decorated StructItemList
 {
   return findStructItemPosHelper(n, items, 0);
 }
 
 function findStructItemPosHelper
-Integer ::= n::String  items::StructItemList  pos::Integer
+Integer ::= n::String  items::Decorated StructItemList  pos::Integer
 {
   return
     case items of
@@ -132,7 +133,7 @@ Integer ::= n::String  items::StructItemList  pos::Integer
 }
 
 function getNthEnumItemName
-Name ::= items::EnumItemList  i::Integer
+Name ::= items::Decorated EnumItemList  i::Integer
 {
   return
     case items of

@@ -14,7 +14,8 @@ build:
 examples:
 	@cd examples && $(MAKE) -j
 
-analyses: mda mwda
+#analyses: mda mwda
+analyses: mwda
 
 mda:
 	@cd modular_analyses && $(MAKE) mda
