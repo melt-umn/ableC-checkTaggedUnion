@@ -18,13 +18,19 @@ ableC.jar: $(GRAMMAR_SOURCES)
 		     -I $(EXTS_BASE)/ableC-checkTaggedUnion/grammars \
 		     $(SVFLAGS) artifact
 
-examples: example1.out
+examples: example1.out example2.out
 
 example1.c: ableC.jar example1.xc
 	java -Xss6M -jar ableC.jar example1.xc
 
 example1.out: example1.c
 	gcc example1.c -o example1.out
+
+example2.c: ableC.jar example2.xc
+	java -Xss6M -jar ableC.jar example2.xc
+
+example2.out: example2.c
+	gcc example2.c -o example2.out
 
 clean:
 	rm -f *~ *.i *.c *.o *.out *.test *.jar *.copperdump.html build.xml
