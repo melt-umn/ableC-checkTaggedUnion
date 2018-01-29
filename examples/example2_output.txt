@@ -1,0 +1,3 @@
+$ ./example2.out
+example2.xc:29:13:ERROR: mismatched tag
+
