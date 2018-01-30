@@ -109,6 +109,36 @@ node {
                  ])
       }
 
+      // Checkout dependancies
+      try {
+        checkout([ $class: 'GitSCM',
+                   branches: scm.branches,
+                   doGenerateSubmoduleConfigurations: false,
+                   extensions: [
+                     [ $class: 'RelativeTargetDirectory',
+                       relativeTargetDir: 'extensions/ableC-check'],
+                     [ $class: 'CleanCheckout']
+                   ],
+                   userRemoteConfigs: [
+                     [url: 'https://github.com/melt-umn/ableC-check.git']
+                   ]
+                 ])
+      }
+      catch (e) {
+        checkout([ $class: 'GitSCM',
+                   branches: [[name: '*/develop']],
+                   doGenerateSubmoduleConfigurations: false,
+                   extensions: [
+                     [ $class: 'RelativeTargetDirectory',
+                       relativeTargetDir: 'extensions/ableC-check'],
+                     [ $class: 'CleanCheckout']
+                   ],
+                   userRemoteConfigs: [
+                     [url: 'https://github.com/melt-umn/ableC-check.git']
+                   ]
+                 ])
+      }
+
       /* env.PATH is the master's path, not the executor's */
       withEnv(env) {
         dir("extensions/${extension_name}") {
