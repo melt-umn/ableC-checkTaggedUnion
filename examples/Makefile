@@ -2,21 +2,24 @@
 ABLEC_BASE?=../../../ableC
 EXTS_BASE?=../../../extensions
 
+# The jar file to built
+ABLEC_JAR=ableC.jar
+# The artifact specification grammar to compile
+ARTIFACT=artifact
 # All directories containing grammars that may be included
-GRAMMAR_DIRS=$(ABLEC_BASE)/grammars $(EXTS_BASE)/ableC-checkTaggedUnion/grammars
+GRAMMAR_DIRS=$(ABLEC_BASE)/grammars $(wildcard $(EXTS_BASE)/*/grammars)
 
 # All silver files in included grammars, to be included as dependancies
 GRAMMAR_SOURCES=$(shell find $(GRAMMAR_DIRS) -name *.sv -print0 | xargs -0)
+# Flags passed to silver including the appropriate directories
+override SVFLAGS+=$(addprefix -I ,$(GRAMMAR_DIRS))
 
 
 all: ableC.jar examples
 
 ableC.jar: $(GRAMMAR_SOURCES)
-	touch artifact/Artifact.sv
-	silver -o $@ -I $(ABLEC_BASE) \
-		     -I $(EXTS_BASE)/ableC-check/grammars \
-		     -I $(EXTS_BASE)/ableC-checkTaggedUnion/grammars \
-		     $(SVFLAGS) artifact
+	touch $(wildcard $(ARTIFACT)/*.sv)
+	silver -o $@ $(SVFLAGS) $(ARTIFACT)
 
 examples: example1.out example2.out
 
