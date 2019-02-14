@@ -47,12 +47,12 @@ top::Expr ::= lhs::Expr  deref::Boolean  rhs::Name
 
   local structItems :: StructItemList =
     case lhs1Ty of
-      tagType(_, refIdTagType(_, _, rid)) ->
+      extType(_, refIdExtType(_, _, rid)) ->
         case lookupRefId(rid, top.env) of
           [structRefIdItem(structDecl(_, _, dcls))] -> dcls
         | _ -> error("failed to look up refId")
         end
-    | _ -> error("expected refIdTagType")
+    | _ -> error("expected refIdExtType")
     end;
   structItems.env = top.env;
   structItems.returnType = top.returnType;
@@ -73,16 +73,16 @@ top::Expr ::= lhs::Expr  deref::Boolean  rhs::Name
     end;
   enumItems.env = top.env;
   enumItems.returnType = top.returnType;
-  enumItems.containingEnum = tagType(nilQualifier(), enumTagType(eDecl));
+  enumItems.containingEnum = extType(nilQualifier(), enumExtType(eDecl));
 
   local unionItems :: StructItemList =
     case lhs.typerep of
-      tagType(_, refIdTagType(_, _, rid)) ->
+      extType(_, refIdExtType(_, _, rid)) ->
         case lookupRefId(rid, top.env) of
           [unionRefIdItem(unionDecl(_, _, dcls))] -> dcls
         | _ -> error("failed to look up refId")
         end
-    | _ -> error("expected refIdTagType")
+    | _ -> error("expected refIdExtType")
     end;
   unionItems.env = top.env;
   unionItems.returnType = top.returnType;
