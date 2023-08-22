@@ -17,8 +17,8 @@ top::Declarator ::= name::Name ty::TypeModifierExpr attrs::Attributes initialize
     case initializer of
       justInitializer(_) -> []
     | _ ->
-          if containsQualifier(checkQualifier(location=builtinLoc(MODULE_NAME)), top.typerep)
-          then [err(name.location, "tagged_union not initialized")]
+          if containsQualifier(checkQualifier(), top.typerep)
+          then [errFromOrigin(name, "tagged_union not initialized")]
           else []
     end;
 }
@@ -41,7 +41,7 @@ top::Expr ::= lhs::Expr  deref::Boolean  rhs::Name
     case lhs of
       memberExpr(_, _, rhs1) ->
         rhs1.name == "variant" &&
-        containsQualifier(checkQualifier(location=builtinLoc(MODULE_NAME)), lhs1Ty)
+        containsQualifier(checkQualifier(), lhs1Ty)
     | _ -> false
     end;
 
@@ -88,18 +88,16 @@ top::Expr ::= lhs::Expr  deref::Boolean  rhs::Name
           notEqualsExpr(
             memberExpr(
               lhs1, deref1,
-              name("tag", location=builtinLoc(MODULE_NAME)),
-              location=builtinLoc(MODULE_NAME)
+              name("tag")
             ),
-            declRefExpr(enumName, location=builtinLoc(MODULE_NAME)),
-            location=builtinLoc(MODULE_NAME)
+            declRefExpr(enumName)
           )
     | _ -> error("expected lhs memberExpr")
     end;
 
   runtimeMods <-
     if isTaggedUnionVariantDeref
-    then [inj:runtimeCheck(checkTag, "ERROR: mismatched tag\\n", top.location)]
+    then [inj:runtimeCheck(checkTag, "ERROR: mismatched tag\\n")]
     else [];
 }
 
